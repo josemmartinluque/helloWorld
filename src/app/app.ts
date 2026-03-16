@@ -1,53 +1,48 @@
-import { CommonModule } from "@angular/common";
-import { Component, signal } from "@angular/core";
-import { RouterOutlet } from "@angular/router";
+import { Component, inject, signal } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
+import { User } from './interfaces/user';
+import { Footer } from './layout/footer/footer';
 import { Header } from './layout/header/header';
-import { User, Welcome } from "./welcome/welcome";
 
 @Component({
-  selector: "app-root",
-  imports: [CommonModule, RouterOutlet, Welcome, Header],
-  templateUrl: "./app.html",
-  styleUrls: ["./app.scss"],
+  selector: 'app-root',
+  imports: [RouterModule, Header, Footer],
+  template: `
+<div class="app-container">
+  <app-header
+    [appTitle]="title"
+    [currentUser]="currentUser()"
+    (navigationClick)="onNavigation($event)"
+    (loginClick)="onHeaderLogin()"
+    (logoutClick)="onHeaderLogout()"
+  />
+  <main class="main-content">
+    <router-outlet />
+  </main>
+  <app-footer />
+</div>
+  `,
+  styleUrl: './app.scss',
 })
-export class App {
-  title = "Avanade";
-  currentUser = signal<User | null>(null);
-  showPersonalizedMessage = signal(true);
 
+export class App {
+  title = 'Avanade';
+  currentUser = signal<User | null>(null);
+
+  private router = inject(Router);
   private sampleUsers: User[] = [
     { id: 1, name: 'Ana García', email: 'ana@example.com', role: 'admin' },
     { id: 2, name: 'Carlos López', email: 'carlos@example.com', role: 'user' },
-    { id: 3, name: 'María Rodríguez', email: 'maria@example.com', role: 'guest' },
+    {
+      id: 3,
+      name: 'María Rodríguez',
+      email: 'maria@example.com',
+      role: 'guest',
+    },
   ];
 
-  onUserInteraction(action: string) {
-    console.log("Usuario realizó acción:", action);
-    switch (action) {
-      case "explore":
-        alert("¡Explorando la aplicación! 🚀");
-        break;
-      case "profile":
-        alert("Navegando al perfil... 👤");
-        break;
-      case "settings":
-        alert("Abriendo configuración... ⚙️");
-        break;
-      case "login":
-        this.simulateLogin();
-        break;
-    }
-  }
-
-  onLogout() {
-    this.currentUser.set(null);
-    console.log("Usuario cerró sesión");
-    alert("Sesión cerrada correctamente 👋");
-  }
-
   onNavigation(section: string) {
-    console.log("Navegando a:", section);
-    alert(`Navegando a la sección: ${section}`);
+    this.router.navigate([section]);
   }
 
   onHeaderLogin() {
@@ -58,16 +53,17 @@ export class App {
     this.onLogout();
   }
 
-  togglePersonalizedMessage() {
-    this.showPersonalizedMessage.update((show) => !show);
+  onLogout() {
+    this.currentUser.set(null);
+    console.log('Usuario cerró sesión');
+    alert('Sesión cerrada correctamente 👋');
   }
 
   private simulateLogin() {
-    // Simular login con usuario aleatorio
     const randomUser =
       this.sampleUsers[Math.floor(Math.random() * this.sampleUsers.length)];
     this.currentUser.set(randomUser);
-    console.log("Usuario autenticado:", randomUser);
+    console.log('Usuario autenticado:', randomUser);
     alert(`¡Bienvenido, ${randomUser.name}! 🎉`);
   }
 }
